@@ -224,11 +224,17 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
+      background: var(--timer-fill);
+    }
+    #bg-elapsed {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
       background: conic-gradient(
         from 0deg,
-        var(--timer-fill) 0deg,
-        var(--timer-fill) calc(var(--remaining) * 360deg),
-        var(--timer-empty) calc(var(--remaining) * 360deg)
+        var(--timer-empty) 0deg,
+        var(--timer-empty) calc((1 - var(--remaining)) * 360deg),
+        transparent calc((1 - var(--remaining)) * 360deg)
       );
     }
 
@@ -317,7 +323,7 @@
 
   <!-- 5: Main -->
   <div class="screen" id="screen-main">
-    <div id="bg-pie"></div>
+    <div id="bg-pie"><div id="bg-elapsed"></div></div>
     <div id="center-msg">
       <div id="msg-genre"></div>
       <div id="msg-text"></div>
@@ -741,36 +747,42 @@
     document.getElementById('screen-start').addEventListener('click', startDetox);
 
     // ── Screen 5: Main ──
-    let _countdown, _msgRotate;
+    let _msgRotate, _rafId;
     const MSG_MS = 5 * 60 * 1000;
 
     function startDetox() {
-      S.total = S.hours * 3600 + S.minutes * 60;
-      S.remaining = S.total;
+      S.total   = S.hours * 3600 + S.minutes * 60;
+      S.endTime = Date.now() + S.total * 1000;
       go('screen-main');
       rotateMessage();
-      tick();
 
-      clearInterval(_countdown);
-      _countdown = setInterval(() => {
-        if (S.remaining <= 0) {
-          clearInterval(_countdown);
-          clearInterval(_msgRotate);
-          onComplete();
-          return;
-        }
-        S.remaining--;
-        tick();
-      }, 1000);
-
+      cancelAnimationFrame(_rafId);
       clearInterval(_msgRotate);
-      _msgRotate = setInterval(rotateMessage, MSG_MS);
-    }
 
-    function tick() {
-      const frac = S.total > 0 ? S.remaining / S.total : 0;
-      document.documentElement.style.setProperty('--remaining', frac);
-      document.getElementById('bottom-timer').textContent = fmt(S.remaining);
+      let lastSec = -1;
+
+      function animate() {
+        const remMs  = Math.max(0, S.endTime - Date.now());
+        const remSec = remMs / 1000;
+        const frac   = remMs / (S.total * 1000);
+
+        document.documentElement.style.setProperty('--remaining', frac);
+
+        const dispSec = Math.ceil(remSec);
+        if (dispSec !== lastSec) {
+          lastSec = dispSec;
+          document.getElementById('bottom-timer').textContent = fmt(dispSec);
+        }
+
+        if (remMs > 0) {
+          _rafId = requestAnimationFrame(animate);
+        } else {
+          onComplete();
+        }
+      }
+
+      _rafId = requestAnimationFrame(animate);
+      _msgRotate = setInterval(rotateMessage, MSG_MS);
     }
 
     function rotateMessage() {
@@ -782,6 +794,7 @@
     }
 
     function onComplete() {
+      clearInterval(_msgRotate);
       document.documentElement.style.setProperty('--remaining', 0);
       document.getElementById('bottom-timer').textContent = '完了';
       document.getElementById('msg-genre').textContent    = '';
