@@ -7,310 +7,585 @@
   <link rel="icon" type="image/svg+xml" href="icon.svg">
   <link rel="apple-touch-icon" href="icon-180.png">
   <style>
+    :root {
+      --bg: #ffffff;
+      --text: #1a1a1a;
+      --sub: #aaaaaa;
+      --border: #e8e8e8;
+      --btn-bg: #1a1a1a;
+      --btn-text: #ffffff;
+      --timer-fill: #1a1a1a;
+      --timer-empty: #efefef;
+      --remaining: 1;
+    }
+
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     html, body {
       width: 100%; height: 100%;
-      background: #ffffff;
+      background: var(--bg);
+      color: var(--text);
       overflow: hidden;
       -webkit-user-select: none;
       user-select: none;
       font-family: -apple-system, "Helvetica Neue", sans-serif;
+      transition: background 0.35s, color 0.35s;
     }
 
-    /* ── 選択画面 ── */
-    #select-screen {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      padding: 48px 32px;
-      gap: 0;
-    }
-
-    #select-screen h1 {
-      font-size: 22px;
-      font-weight: 500;
-      color: #1a1a1a;
-      letter-spacing: 0.1em;
-      margin-bottom: 8px;
-    }
-
-    #select-screen p {
-      font-size: 13px;
-      color: #aaaaaa;
-      margin-bottom: 36px;
-      letter-spacing: 0.05em;
-    }
-
-    .genre-list {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      width: 100%;
-      max-width: 320px;
-      margin-bottom: 40px;
-    }
-
-    .genre-item {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      padding: 14px 18px;
-      border: 1.5px solid #e8e8e8;
-      border-radius: 12px;
-      cursor: pointer;
-      transition: border-color 0.15s, background 0.15s;
-    }
-
-    .genre-item.selected {
-      border-color: #1a1a1a;
-      background: #f9f9f9;
-    }
-
-    .genre-item .check {
-      width: 20px; height: 20px;
-      border: 1.5px solid #cccccc;
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
-      transition: border-color 0.15s, background 0.15s;
-    }
-
-    .genre-item.selected .check {
-      border-color: #1a1a1a;
-      background: #1a1a1a;
-    }
-
-    .genre-item.selected .check::after {
-      content: "";
-      width: 6px; height: 6px;
-      background: #fff;
-      border-radius: 50%;
-    }
-
-    .genre-label {
-      font-size: 16px;
-      color: #1a1a1a;
-      letter-spacing: 0.05em;
-    }
-
-    #start-btn {
-      width: 100%;
-      max-width: 320px;
-      padding: 16px;
-      background: #1a1a1a;
-      color: #ffffff;
-      border: none;
-      border-radius: 12px;
-      font-size: 16px;
-      letter-spacing: 0.1em;
-      cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    #start-btn:disabled {
-      background: #cccccc;
-      cursor: default;
-    }
-
-    /* ── メイン画面 ── */
-    #main-screen {
+    /* ── screens ── */
+    .screen {
       display: none;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      height: 100vh;
-      padding: 40px;
+      min-height: 100vh;
+      padding: 52px 32px 48px;
+    }
+    .screen.active { display: flex; }
+
+    .screen-title {
+      font-size: 22px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      margin-bottom: 6px;
+    }
+    .screen-sub {
+      font-size: 13px;
+      color: var(--sub);
+      margin-bottom: 32px;
+      letter-spacing: 0.05em;
+      text-align: center;
     }
 
-    #genre-label {
-      font-size: 12px;
-      letter-spacing: 0.25em;
-      color: #cccccc;
+    .btn-primary {
+      width: 100%;
+      max-width: 320px;
+      padding: 16px;
+      background: var(--btn-bg);
+      color: var(--btn-text);
+      border: none;
+      border-radius: 14px;
+      font-size: 16px;
+      letter-spacing: 0.1em;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: background 0.3s, color 0.3s, opacity 0.2s;
+    }
+    .btn-primary:disabled { opacity: 0.25; cursor: default; }
+
+    /* ── genre screen ── */
+    .genre-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      width: 100%;
+      max-width: 320px;
       margin-bottom: 28px;
-      text-transform: uppercase;
+    }
+    .genre-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 13px 16px;
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+    .genre-item.selected { border-color: var(--text); }
+    .genre-check {
+      width: 20px; height: 20px;
+      border: 1.5px solid var(--border);
+      border-radius: 50%;
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s;
+    }
+    .genre-item.selected .genre-check {
+      border-color: var(--text);
+      background: var(--text);
+    }
+    .genre-item.selected .genre-check::after {
+      content: "";
+      width: 6px; height: 6px;
+      background: var(--bg);
+      border-radius: 50%;
+    }
+    .genre-label { font-size: 15px; letter-spacing: 0.05em; }
+
+    /* ── timer screen ── */
+    .timer-picker {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 44px;
+    }
+    .picker-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+    }
+    .picker-unit {
+      font-size: 12px;
+      color: var(--sub);
+      letter-spacing: 0.1em;
+    }
+    .picker-val {
+      font-size: 64px;
+      font-weight: 200;
+      min-width: 90px;
+      text-align: center;
+      letter-spacing: -0.02em;
+    }
+    .picker-sep {
+      font-size: 48px;
+      font-weight: 200;
+      color: var(--sub);
+      padding-bottom: 22px;
+    }
+    .picker-btn {
+      width: 52px; height: 52px;
+      border: 1.5px solid var(--border);
+      border-radius: 50%;
+      background: transparent;
+      color: var(--text);
+      font-size: 26px;
+      line-height: 1;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: none;
     }
 
-    #message {
-      font-size: clamp(17px, 5vw, 24px);
-      font-weight: 400;
-      color: #1a1a1a;
+    /* ── theme screen ── */
+    .theme-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      width: 100%;
+      max-width: 320px;
+      margin-bottom: 28px;
+    }
+    .theme-card {
+      border: 2px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+    .theme-card.selected { border-color: var(--text); }
+    .theme-preview {
+      height: 80px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .theme-dot {
+      width: 44px; height: 44px;
+      border-radius: 50%;
+    }
+    .theme-name-label {
+      padding: 8px 12px 10px;
+      font-size: 13px;
+      letter-spacing: 0.04em;
+    }
+
+    /* ── start screen ── */
+    #screen-start { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+    #start-hint {
+      font-size: 20px;
+      letter-spacing: 0.06em;
+      text-align: center;
+      line-height: 2.2;
+      opacity: 0.55;
+    }
+    #start-meta {
+      margin-top: 28px;
+      font-size: 13px;
+      color: var(--sub);
       text-align: center;
       line-height: 2;
-      letter-spacing: 0.06em;
+      letter-spacing: 0.04em;
     }
 
-    #timer {
-      position: fixed;
-      bottom: 40px;
-      left: 50%;
-      transform: translateX(-50%);
+    /* ── main detox screen ── */
+    #screen-main {
+      justify-content: space-evenly;
+      padding: 64px 40px 52px;
+      gap: 0;
+    }
+    #main-genre {
       font-size: 11px;
-      color: #e0e0e0;
-      letter-spacing: 0.1em;
+      letter-spacing: 0.3em;
+      color: var(--sub);
+      text-align: center;
+    }
+
+    /* circle timer */
+    .circle-wrap {
+      position: relative;
+      width: 248px; height: 248px;
+      flex-shrink: 0;
+    }
+    .circle-track {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background: var(--timer-empty);
+      transition: background 0.35s;
+    }
+    .circle-arc {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background: conic-gradient(
+        from -90deg,
+        var(--timer-fill) 0deg,
+        var(--timer-fill) calc(var(--remaining) * 360deg),
+        transparent calc(var(--remaining) * 360deg)
+      );
+      transition: background 0.35s;
+    }
+    .circle-hole {
+      position: absolute;
+      inset: 38px;
+      background: var(--bg);
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      transition: background 0.35s;
+    }
+    #time-display {
+      font-size: 22px;
+      font-weight: 300;
+      letter-spacing: 0.04em;
+    }
+
+    /* message area */
+    .message-area { text-align: center; }
+    #msg-genre {
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      color: var(--sub);
+      margin-bottom: 14px;
+    }
+    #msg-text {
+      font-size: clamp(16px, 4.8vw, 22px);
+      font-weight: 400;
+      line-height: 2;
+      letter-spacing: 0.06em;
     }
   </style>
 </head>
 <body>
 
-  <!-- 選択画面 -->
-  <div id="select-screen">
-    <h1>Jail</h1>
-    <p>表示するジャンルを選んでください</p>
+  <!-- 1: Genre -->
+  <div class="screen active" id="screen-genre">
+    <div class="screen-title">Jail</div>
+    <div class="screen-sub">表示するジャンルを選んでください</div>
     <div class="genre-list" id="genre-list"></div>
-    <button id="start-btn" disabled>開始する</button>
+    <button class="btn-primary" id="genre-next" disabled>次へ</button>
   </div>
 
-  <!-- メイン画面 -->
-  <div id="main-screen">
-    <div id="genre-label"></div>
-    <div id="message"></div>
+  <!-- 2: Timer -->
+  <div class="screen" id="screen-timer">
+    <div class="screen-title">タイマー設定</div>
+    <div class="screen-sub">デトックスする時間を設定してください<br>（最大 23時間59分）</div>
+    <div class="timer-picker">
+      <div class="picker-col">
+        <button class="picker-btn" id="hr-up">＋</button>
+        <div class="picker-val" id="hr-val">0</div>
+        <button class="picker-btn" id="hr-dn">－</button>
+        <div class="picker-unit">時間</div>
+      </div>
+      <div class="picker-sep">:</div>
+      <div class="picker-col">
+        <button class="picker-btn" id="mn-up">＋</button>
+        <div class="picker-val" id="mn-val">00</div>
+        <button class="picker-btn" id="mn-dn">－</button>
+        <div class="picker-unit">分</div>
+      </div>
+    </div>
+    <button class="btn-primary" id="timer-next" disabled>次へ</button>
   </div>
-  <div id="timer"></div>
+
+  <!-- 3: Theme -->
+  <div class="screen" id="screen-theme">
+    <div class="screen-title">テーマ</div>
+    <div class="screen-sub">デザインを選んでください</div>
+    <div class="theme-grid" id="theme-grid"></div>
+    <button class="btn-primary" id="theme-next" disabled>次へ</button>
+  </div>
+
+  <!-- 4: Start -->
+  <div class="screen" id="screen-start">
+    <div id="start-hint">画面をどこかタッチして<br>スタート</div>
+    <div id="start-meta"></div>
+  </div>
+
+  <!-- 5: Main -->
+  <div class="screen" id="screen-main">
+    <div id="main-genre"></div>
+    <div class="circle-wrap">
+      <div class="circle-track"></div>
+      <div class="circle-arc"></div>
+      <div class="circle-hole">
+        <div id="time-display">0:00:00</div>
+      </div>
+    </div>
+    <div class="message-area">
+      <div id="msg-genre"></div>
+      <div id="msg-text"></div>
+    </div>
+  </div>
 
   <script>
-    const INTERVAL_MS = 5 * 60 * 1000;
+    // ── Themes ──
+    const THEMES = {
+      basic: {
+        name: "ベーシック",
+        bg: "#ffffff", text: "#1a1a1a", sub: "#aaaaaa",
+        border: "#e8e8e8", btnBg: "#1a1a1a", btnText: "#ffffff",
+        timerFill: "#1a1a1a", timerEmpty: "#efefef",
+        prevBg: "#f5f5f5", prevDot: "#1a1a1a",
+      },
+      modern: {
+        name: "モダン",
+        bg: "#0d0d0d", text: "#f0f0f0", sub: "#555555",
+        border: "#2a2a2a", btnBg: "#c62828", btnText: "#ffffff",
+        timerFill: "#c62828", timerEmpty: "#1e1e1e",
+        prevBg: "#1a1a1a", prevDot: "#c62828",
+      },
+      water: {
+        name: "ウォーター",
+        bg: "#eef6fb", text: "#1a4a6b", sub: "#7aabcc",
+        border: "#c5dff0", btnBg: "#1e88e5", btnText: "#ffffff",
+        timerFill: "#1e88e5", timerEmpty: "#c5dff0",
+        prevBg: "#d6edf9", prevDot: "#1e88e5",
+      },
+      softgreen: {
+        name: "ソフトグリーン",
+        bg: "#f1f8f1", text: "#2d5a27", sub: "#7aab76",
+        border: "#c5e0c2", btnBg: "#43a047", btnText: "#ffffff",
+        timerFill: "#66bb6a", timerEmpty: "#c5e0c2",
+        prevBg: "#d8eed7", prevDot: "#66bb6a",
+      },
+    };
 
-    const genres = [
-      {
-        id: "study", name: "勉強",
-        messages: [
-          "教科書を開こう。スマホより、未来の自分を選ぼう。",
-          "今集中できれば、明日の自分が楽になる。",
-          "1ページでいい。手を動かすことから始めよう。",
-          "理解できないことはメモして先に進もう。",
-          "今日の積み重ねが実力になる。",
-          "静かに考える時間が本当の学びをつくる。",
-        ]
-      },
-      {
-        id: "health", name: "健康",
-        messages: [
-          "背筋を伸ばして、深く息を吸おう。",
-          "目を閉じて20秒。目も休息が必要だ。",
-          "水を一杯飲もう。体は正直に喜ぶ。",
-          "少し立ち上がってその場で体を動かそう。",
-          "肩をゆっくり回して力を抜こう。",
-          "よく眠れているか。体の声を聞こう。",
-        ]
-      },
-      {
-        id: "mindfulness", name: "マインドフルネス",
-        messages: [
-          "今、ここにある。それで十分だ。",
-          "呼吸だけに意識を向けてみよう。",
-          "焦らなくていい。時間はちゃんとある。",
-          "頭の中を空っぽにする時間。何もしなくていい。",
-          "今この瞬間を感じること。それが全てだ。",
-          "静寂は贈り物だ。",
-        ]
-      },
-      {
-        id: "nature", name: "自然",
-        messages: [
-          "窓の外を眺めよう。空は今日も動いている。",
-          "少し換気しよう。外の空気を感じよう。",
-          "植物に水をあげる時間かもしれない。",
-          "太陽の光を浴びよう。体が喜ぶ。",
-          "雨の音を聞いてみよう。自然のリズムがある。",
-          "今日の空の色は何色だろう。",
-        ]
-      },
-      {
-        id: "relations", name: "人間関係",
-        messages: [
-          "大切な人のことを思い浮かべよう。",
-          "今日誰かに感謝を伝えよう。",
-          "画面越しじゃない時間をつくろう。",
-          "一人でいることも豊かな時間だ。",
-          "自分自身と向き合う時間にしよう。",
-          "誰かの声を直接聞きたくなったら、電話しよう。",
-        ]
-      },
-      {
-        id: "creative", name: "創造",
-        messages: [
-          "何かを書いてみよう。思ったことをそのまま。",
-          "紙とペンを出して落書きしよう。",
-          "頭の中のアイデアをどこかに記録しよう。",
-          "やってみたいことをリストにしよう。",
-          "何かを作る喜びを思い出そう。",
-          "想像することを楽しもう。",
-        ]
-      },
-      {
-        id: "detox", name: "デジタルデトックス",
-        messages: [
-          "スマホなしで何ができるか考えよう。",
-          "通知は後でいい。今は自分の時間だ。",
-          "画面のない時間が本当の休憩だ。",
-          "SNSは逃げない。自分の時間を取り戻そう。",
-          "情報から離れることも大切な選択だ。",
-          "今日のスマホ断ちを続けよう。よくやっている。",
-        ]
-      },
+    // ── Genres ──
+    const GENRES = [
+      { id: "study", name: "勉強", messages: [
+        "教科書を開こう。スマホより、未来の自分を選ぼう。",
+        "今集中できれば、明日の自分が楽になる。",
+        "1ページでいい。手を動かすことから始めよう。",
+        "理解できないことはメモして先に進もう。",
+        "今日の積み重ねが実力になる。",
+        "静かに考える時間が本当の学びをつくる。",
+      ]},
+      { id: "health", name: "健康", messages: [
+        "背筋を伸ばして、深く息を吸おう。",
+        "目を閉じて20秒。目も休息が必要だ。",
+        "水を一杯飲もう。体は正直に喜ぶ。",
+        "少し立ち上がってその場で体を動かそう。",
+        "肩をゆっくり回して力を抜こう。",
+        "よく眠れているか。体の声を聞こう。",
+      ]},
+      { id: "mindfulness", name: "マインドフルネス", messages: [
+        "今、ここにある。それで十分だ。",
+        "呼吸だけに意識を向けてみよう。",
+        "焦らなくていい。時間はちゃんとある。",
+        "頭の中を空っぽにする時間。何もしなくていい。",
+        "今この瞬間を感じること。それが全てだ。",
+        "静寂は贈り物だ。",
+      ]},
+      { id: "nature", name: "自然", messages: [
+        "窓の外を眺めよう。空は今日も動いている。",
+        "少し換気しよう。外の空気を感じよう。",
+        "植物に水をあげる時間かもしれない。",
+        "太陽の光を浴びよう。体が喜ぶ。",
+        "雨の音を聞いてみよう。自然のリズムがある。",
+        "今日の空の色は何色だろう。",
+      ]},
+      { id: "relations", name: "人間関係", messages: [
+        "大切な人のことを思い浮かべよう。",
+        "今日誰かに感謝を伝えよう。",
+        "画面越しじゃない時間をつくろう。",
+        "一人でいることも豊かな時間だ。",
+        "自分自身と向き合う時間にしよう。",
+        "誰かの声を直接聞きたくなったら、電話しよう。",
+      ]},
+      { id: "creative", name: "創造", messages: [
+        "何かを書いてみよう。思ったことをそのまま。",
+        "紙とペンを出して落書きしよう。",
+        "頭の中のアイデアをどこかに記録しよう。",
+        "やってみたいことをリストにしよう。",
+        "何かを作る喜びを思い出そう。",
+        "想像することを楽しもう。",
+      ]},
+      { id: "detox", name: "デジタルデトックス", messages: [
+        "スマホなしで何ができるか考えよう。",
+        "通知は後でいい。今は自分の時間だ。",
+        "画面のない時間が本当の休憩だ。",
+        "SNSは逃げない。自分の時間を取り戻そう。",
+        "情報から離れることも大切な選択だ。",
+        "今日のスマホ断ちを続けよう。よくやっている。",
+      ]},
     ];
 
-    // ── 選択画面の構築 ──
-    const selectedIds = new Set();
-    const listEl = document.getElementById("genre-list");
-    const startBtn = document.getElementById("start-btn");
+    // ── State ──
+    const S = { genres: new Set(), hours: 0, minutes: 0, theme: null, total: 0, remaining: 0 };
 
-    genres.forEach(g => {
-      const item = document.createElement("div");
-      item.className = "genre-item";
-      item.innerHTML = `<div class="check"></div><span class="genre-label">${g.name}</span>`;
-      item.addEventListener("click", () => {
-        if (selectedIds.has(g.id)) {
-          selectedIds.delete(g.id);
-          item.classList.remove("selected");
-        } else {
-          selectedIds.add(g.id);
-          item.classList.add("selected");
-        }
-        startBtn.disabled = selectedIds.size === 0;
+    // ── Utils ──
+    const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+    const pad  = n => String(n).padStart(2, '0');
+    const fmt  = s => {
+      const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
+      return h > 0 ? `${h}:${pad(m)}:${pad(sec)}` : `${m}:${pad(sec)}`;
+    };
+    const fmtMsg = t => t.replace(/([、。])/g, '$1<br>');
+
+    function applyTheme(id) {
+      const t = THEMES[id];
+      const r = document.documentElement.style;
+      r.setProperty('--bg',          t.bg);
+      r.setProperty('--text',        t.text);
+      r.setProperty('--sub',         t.sub);
+      r.setProperty('--border',      t.border);
+      r.setProperty('--btn-bg',      t.btnBg);
+      r.setProperty('--btn-text',    t.btnText);
+      r.setProperty('--timer-fill',  t.timerFill);
+      r.setProperty('--timer-empty', t.timerEmpty);
+    }
+
+    function go(id) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+    }
+
+    // ── Screen 1: Genre ──
+    const genreNext = document.getElementById('genre-next');
+    GENRES.forEach(g => {
+      const el = document.createElement('div');
+      el.className = 'genre-item';
+      el.innerHTML = `<div class="genre-check"></div><span class="genre-label">${g.name}</span>`;
+      el.addEventListener('click', () => {
+        S.genres.has(g.id) ? (S.genres.delete(g.id), el.classList.remove('selected'))
+                           : (S.genres.add(g.id),    el.classList.add('selected'));
+        genreNext.disabled = S.genres.size === 0;
       });
-      listEl.appendChild(item);
+      document.getElementById('genre-list').appendChild(el);
+    });
+    genreNext.addEventListener('click', () => go('screen-timer'));
+
+    // ── Screen 2: Timer ──
+    const hrVal   = document.getElementById('hr-val');
+    const mnVal   = document.getElementById('mn-val');
+    const timerNext = document.getElementById('timer-next');
+
+    function syncTimer() {
+      hrVal.textContent = S.hours;
+      mnVal.textContent = pad(S.minutes);
+      timerNext.disabled = S.hours === 0 && S.minutes === 0;
+    }
+
+    function repeatable(el, fn) {
+      let iv;
+      el.addEventListener('pointerdown', () => { fn(); iv = setInterval(fn, 130); });
+      ['pointerup','pointerleave','pointercancel'].forEach(e => el.addEventListener(e, () => clearInterval(iv)));
+    }
+
+    repeatable(document.getElementById('hr-up'), () => { S.hours = Math.min(23, S.hours + 1); syncTimer(); });
+    repeatable(document.getElementById('hr-dn'), () => { S.hours = Math.max(0,  S.hours - 1); syncTimer(); });
+    repeatable(document.getElementById('mn-up'), () => {
+      if (S.hours === 23 && S.minutes === 59) return;
+      S.minutes = (S.minutes + 1) % 60; syncTimer();
+    });
+    repeatable(document.getElementById('mn-dn'), () => {
+      S.minutes = (S.minutes - 1 + 60) % 60; syncTimer();
+    });
+    timerNext.addEventListener('click', () => go('screen-theme'));
+
+    // ── Screen 3: Theme ──
+    const themeNext = document.getElementById('theme-next');
+    Object.entries(THEMES).forEach(([id, t]) => {
+      const card = document.createElement('div');
+      card.className = 'theme-card';
+      card.innerHTML = `
+        <div class="theme-preview" style="background:${t.prevBg}">
+          <div class="theme-dot" style="background:${t.prevDot}"></div>
+        </div>
+        <div class="theme-name-label" style="background:${t.bg};color:${t.text}">${t.name}</div>`;
+      card.addEventListener('click', () => {
+        document.querySelectorAll('.theme-card').forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+        S.theme = id;
+        themeNext.disabled = false;
+        applyTheme(id);
+      });
+      document.getElementById('theme-grid').appendChild(card);
+    });
+    themeNext.addEventListener('click', () => {
+      const h = S.hours, m = S.minutes;
+      const timeParts = [];
+      if (h) timeParts.push(`${h}時間`);
+      if (m) timeParts.push(`${m}分`);
+      const genreNames = [...S.genres].map(id => GENRES.find(g => g.id === id).name).join('・');
+      document.getElementById('start-meta').textContent = `${timeParts.join('')}  ／  ${genreNames}`;
+      go('screen-start');
     });
 
-    startBtn.addEventListener("click", () => {
-      document.getElementById("select-screen").style.display = "none";
-      const mainEl = document.getElementById("main-screen");
-      mainEl.style.display = "flex";
-      update();
-    });
+    // ── Screen 4: Start ──
+    document.getElementById('screen-start').addEventListener('click', startDetox);
 
-    // ── メイン画面 ──
-    function pick(arr) {
-      return arr[Math.floor(Math.random() * arr.length)];
-    }
+    // ── Screen 5: Main ──
+    let _countdown, _msgRotate;
+    const MSG_MS = 5 * 60 * 1000;
 
-    function formatMsg(text) {
-      return text.replace(/([、。])/g, '$1<br>');
-    }
+    function startDetox() {
+      S.total = S.hours * 3600 + S.minutes * 60;
+      S.remaining = S.total;
+      go('screen-main');
+      rotateMessage();
+      tick();
 
-    function update() {
-      const pool = genres.filter(g => selectedIds.has(g.id));
-      const genre = pick(pool);
-      const message = pick(genre.messages);
-      document.getElementById("genre-label").textContent = genre.name;
-      document.getElementById("message").innerHTML = formatMsg(message);
-      startCountdown();
-    }
-
-    function startCountdown() {
-      const end = Date.now() + INTERVAL_MS;
-      const timerEl = document.getElementById("timer");
-      clearInterval(window._timer);
-      window._timer = setInterval(() => {
-        const rem = end - Date.now();
-        if (rem <= 0) { clearInterval(window._timer); update(); return; }
-        const m = Math.floor(rem / 60000);
-        const s = Math.floor((rem % 60000) / 1000);
-        timerEl.textContent = `${m}:${String(s).padStart(2, "0")}`;
+      clearInterval(_countdown);
+      _countdown = setInterval(() => {
+        if (S.remaining <= 0) {
+          clearInterval(_countdown);
+          clearInterval(_msgRotate);
+          onComplete();
+          return;
+        }
+        S.remaining--;
+        tick();
       }, 1000);
+
+      clearInterval(_msgRotate);
+      _msgRotate = setInterval(rotateMessage, MSG_MS);
+    }
+
+    function tick() {
+      const frac = S.total > 0 ? S.remaining / S.total : 0;
+      document.documentElement.style.setProperty('--remaining', frac);
+      document.getElementById('time-display').textContent = fmt(S.remaining);
+    }
+
+    function rotateMessage() {
+      const pool = GENRES.filter(g => S.genres.has(g.id));
+      const genre = pick(pool);
+      const msg   = pick(genre.messages);
+      document.getElementById('main-genre').textContent  = genre.name;
+      document.getElementById('msg-genre').textContent   = genre.name;
+      document.getElementById('msg-text').innerHTML      = fmtMsg(msg);
+    }
+
+    function onComplete() {
+      document.documentElement.style.setProperty('--remaining', 0);
+      document.getElementById('time-display').textContent = '完了';
+      document.getElementById('msg-genre').textContent   = '';
+      document.getElementById('msg-text').innerHTML      = 'お疲れ様でした。<br>デトックス完了。';
     }
   </script>
 </body>
