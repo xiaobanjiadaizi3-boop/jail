@@ -238,42 +238,78 @@
       );
     }
 
-    #center-msg {
+    .detox-layer {
       position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .msg-inner {
       width: calc(100% - 64px);
       max-width: 320px;
       text-align: center;
       padding: 0 32px;
-      background: transparent;
     }
-    #msg-genre {
+    .msg-genre-el {
       font-size: 11px;
       letter-spacing: 0.25em;
       color: var(--msg-sub);
       margin-bottom: 14px;
-      text-shadow: var(--msg-shadow, none);
     }
-    #msg-text {
+    .msg-text-el {
       font-size: clamp(16px, 4.8vw, 22px);
       font-weight: 400;
       line-height: 2;
       letter-spacing: 0.06em;
       color: var(--msg-color);
-      text-shadow: var(--msg-shadow, none);
     }
-
-    #bottom-timer {
+    .timer-el {
       position: absolute;
       bottom: 48px;
-      left: 50%;
-      transform: translateX(-50%);
       font-size: 22px;
       font-weight: 200;
       letter-spacing: 0.08em;
       white-space: nowrap;
+      color: var(--msg-color);
+    }
+
+    /* Layer B hidden by default; shown only in basic theme */
+    #layer-b { display: none; }
+
+    /* Basic theme: split each layer with a matching conic mask */
+    #screen-main[data-theme="basic"] #layer-a {
+      --msg-color: #ffffff;
+      --msg-sub: rgba(255,255,255,0.65);
+      -webkit-mask-image: conic-gradient(
+        from 0deg,
+        transparent 0deg,
+        transparent calc((1 - var(--remaining)) * 360deg),
+        black       calc((1 - var(--remaining)) * 360deg)
+      );
+      mask-image: conic-gradient(
+        from 0deg,
+        transparent 0deg,
+        transparent calc((1 - var(--remaining)) * 360deg),
+        black       calc((1 - var(--remaining)) * 360deg)
+      );
+    }
+    #screen-main[data-theme="basic"] #layer-b {
+      display: flex;
+      --msg-color: #1a1a1a;
+      --msg-sub: #777777;
+      -webkit-mask-image: conic-gradient(
+        from 0deg,
+        black 0deg,
+        black       calc((1 - var(--remaining)) * 360deg),
+        transparent calc((1 - var(--remaining)) * 360deg)
+      );
+      mask-image: conic-gradient(
+        from 0deg,
+        black 0deg,
+        black       calc((1 - var(--remaining)) * 360deg),
+        transparent calc((1 - var(--remaining)) * 360deg)
+      );
     }
   </style>
 </head>
@@ -326,11 +362,22 @@
   <!-- 5: Main -->
   <div class="screen" id="screen-main">
     <div id="bg-pie"><div id="bg-elapsed"></div></div>
-    <div id="center-msg">
-      <div id="msg-genre"></div>
-      <div id="msg-text"></div>
+    <!-- Layer A: shown everywhere; white text in basic theme, theme color otherwise -->
+    <div class="detox-layer" id="layer-a">
+      <div class="msg-inner">
+        <div class="msg-genre-el"></div>
+        <div class="msg-text-el"></div>
+      </div>
+      <div class="timer-el">0:00:00</div>
     </div>
-    <div id="bottom-timer">0:00:00</div>
+    <!-- Layer B: basic theme only; black text over the light (elapsed) zone -->
+    <div class="detox-layer" id="layer-b">
+      <div class="msg-inner">
+        <div class="msg-genre-el"></div>
+        <div class="msg-text-el"></div>
+      </div>
+      <div class="timer-el">0:00:00</div>
+    </div>
   </div>
 
   <script>
@@ -342,8 +389,7 @@
         border: "#e8e8e8", btnBg: "#1a1a1a", btnText: "#ffffff",
         timerFill: "#1a1a1a", timerEmpty: "#efefef",
         prevBg: "#f5f5f5", prevDot: "#1a1a1a",
-        msgColor: "#1a1a1a", msgSub: "#444444",
-        msgShadow: "0 0 12px #fff, 0 0 6px #fff, 0 0 2px #fff",
+        msgColor: "#ffffff", msgSub: "rgba(255,255,255,0.65)",
       },
       modern: {
         name: "モダン",
@@ -351,7 +397,7 @@
         border: "#2a2a2a", btnBg: "#c62828", btnText: "#ffffff",
         timerFill: "#c62828", timerEmpty: "#1e1e1e",
         prevBg: "#1a1a1a", prevDot: "#c62828",
-        msgColor: "#f0f0f0", msgSub: "#555555", msgShadow: "none",
+        msgColor: "#f0f0f0", msgSub: "#555555",
       },
       water: {
         name: "ウォーター",
@@ -359,7 +405,7 @@
         border: "#c5dff0", btnBg: "#1e88e5", btnText: "#ffffff",
         timerFill: "#1e88e5", timerEmpty: "#c5dff0",
         prevBg: "#d6edf9", prevDot: "#1e88e5",
-        msgColor: "#1a4a6b", msgSub: "#7aabcc", msgShadow: "none",
+        msgColor: "#1a4a6b", msgSub: "#7aabcc",
       },
       softgreen: {
         name: "ソフトグリーン",
@@ -367,7 +413,7 @@
         border: "#c5e0c2", btnBg: "#43a047", btnText: "#ffffff",
         timerFill: "#66bb6a", timerEmpty: "#c5e0c2",
         prevBg: "#d8eed7", prevDot: "#66bb6a",
-        msgColor: "#2d5a27", msgSub: "#7aab76", msgShadow: "none",
+        msgColor: "#2d5a27", msgSub: "#7aab76",
       },
     };
 
@@ -666,7 +712,7 @@
       r.setProperty('--timer-empty', t.timerEmpty);
       r.setProperty('--msg-color',   t.msgColor);
       r.setProperty('--msg-sub',     t.msgSub);
-      r.setProperty('--msg-shadow',  t.msgShadow);
+      document.getElementById('screen-main').dataset.theme = id;
     }
 
     function go(id) {
@@ -774,7 +820,7 @@
         const dispSec = Math.ceil(remSec);
         if (dispSec !== lastSec) {
           lastSec = dispSec;
-          document.getElementById('bottom-timer').textContent = fmt(dispSec);
+          document.querySelectorAll('.timer-el').forEach(el => el.textContent = fmt(dispSec));
         }
 
         if (remMs > 0) {
@@ -792,16 +838,16 @@
       const pool = GENRES.filter(g => S.genres.has(g.id));
       const genre = pick(pool);
       const msg   = pick(genre.messages);
-      document.getElementById('msg-genre').textContent = genre.name;
-      document.getElementById('msg-text').innerHTML    = fmtMsg(msg);
+      document.querySelectorAll('.msg-genre-el').forEach(el => el.textContent = genre.name);
+      document.querySelectorAll('.msg-text-el').forEach(el => el.innerHTML = fmtMsg(msg));
     }
 
     function onComplete() {
       clearInterval(_msgRotate);
       document.documentElement.style.setProperty('--remaining', 0);
-      document.getElementById('bottom-timer').textContent = '完了';
-      document.getElementById('msg-genre').textContent    = '';
-      document.getElementById('msg-text').innerHTML       = 'お疲れ様でした。<br>デトックス完了。';
+      document.querySelectorAll('.timer-el').forEach(el => el.textContent = '完了');
+      document.querySelectorAll('.msg-genre-el').forEach(el => el.textContent = '');
+      document.querySelectorAll('.msg-text-el').forEach(el => el.innerHTML = 'お疲れ様でした。<br>デトックス完了。');
     }
   </script>
 </body>
