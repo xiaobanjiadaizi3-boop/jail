@@ -209,65 +209,44 @@
 
     /* ── main detox screen ── */
     #screen-main {
-      justify-content: space-evenly;
-      padding: 64px 40px 52px;
-      gap: 0;
-    }
-    #main-genre {
-      font-size: 11px;
-      letter-spacing: 0.3em;
-      color: var(--sub);
-      text-align: center;
+      position: fixed;
+      inset: 0;
+      min-height: unset;
+      padding: 0;
+      overflow: hidden;
     }
 
-    /* circle timer */
-    .circle-wrap {
-      position: relative;
-      width: 248px; height: 248px;
-      flex-shrink: 0;
-    }
-    .circle-track {
+    #bg-pie {
       position: absolute;
-      inset: 0;
+      width: 130vmax;
+      height: 130vmax;
       border-radius: 50%;
-      background: var(--timer-empty);
-      transition: background 0.35s;
-    }
-    .circle-arc {
-      position: absolute;
-      inset: 0;
-      border-radius: 50%;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
       background: conic-gradient(
         from -90deg,
         var(--timer-fill) 0deg,
         var(--timer-fill) calc(var(--remaining) * 360deg),
-        transparent calc(var(--remaining) * 360deg)
+        var(--timer-empty) calc(var(--remaining) * 360deg)
       );
-      transition: background 0.35s;
-    }
-    .circle-hole {
-      position: absolute;
-      inset: 38px;
-      background: var(--bg);
-      border-radius: 50%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 2px;
-      transition: background 0.35s;
-    }
-    #time-display {
-      font-size: 22px;
-      font-weight: 300;
-      letter-spacing: 0.04em;
     }
 
-    /* message area */
-    .message-area { text-align: center; }
+    #center-msg {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: calc(100% - 64px);
+      max-width: 320px;
+      text-align: center;
+      padding: 28px 32px;
+      background: var(--msg-bg);
+      border-radius: 24px;
+    }
     #msg-genre {
       font-size: 11px;
-      letter-spacing: 0.2em;
+      letter-spacing: 0.25em;
       color: var(--sub);
       margin-bottom: 14px;
     }
@@ -276,6 +255,17 @@
       font-weight: 400;
       line-height: 2;
       letter-spacing: 0.06em;
+    }
+
+    #bottom-timer {
+      position: absolute;
+      bottom: 48px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 22px;
+      font-weight: 200;
+      letter-spacing: 0.08em;
+      white-space: nowrap;
     }
   </style>
 </head>
@@ -327,18 +317,12 @@
 
   <!-- 5: Main -->
   <div class="screen" id="screen-main">
-    <div id="main-genre"></div>
-    <div class="circle-wrap">
-      <div class="circle-track"></div>
-      <div class="circle-arc"></div>
-      <div class="circle-hole">
-        <div id="time-display">0:00:00</div>
-      </div>
-    </div>
-    <div class="message-area">
+    <div id="bg-pie"></div>
+    <div id="center-msg">
       <div id="msg-genre"></div>
       <div id="msg-text"></div>
     </div>
+    <div id="bottom-timer">0:00:00</div>
   </div>
 
   <script>
@@ -350,6 +334,7 @@
         border: "#e8e8e8", btnBg: "#1a1a1a", btnText: "#ffffff",
         timerFill: "#1a1a1a", timerEmpty: "#efefef",
         prevBg: "#f5f5f5", prevDot: "#1a1a1a",
+        msgBg: "rgba(255,255,255,0.88)",
       },
       modern: {
         name: "モダン",
@@ -357,6 +342,7 @@
         border: "#2a2a2a", btnBg: "#c62828", btnText: "#ffffff",
         timerFill: "#c62828", timerEmpty: "#1e1e1e",
         prevBg: "#1a1a1a", prevDot: "#c62828",
+        msgBg: "rgba(13,13,13,0.88)",
       },
       water: {
         name: "ウォーター",
@@ -364,6 +350,7 @@
         border: "#c5dff0", btnBg: "#1e88e5", btnText: "#ffffff",
         timerFill: "#1e88e5", timerEmpty: "#c5dff0",
         prevBg: "#d6edf9", prevDot: "#1e88e5",
+        msgBg: "rgba(238,246,251,0.88)",
       },
       softgreen: {
         name: "ソフトグリーン",
@@ -371,6 +358,7 @@
         border: "#c5e0c2", btnBg: "#43a047", btnText: "#ffffff",
         timerFill: "#66bb6a", timerEmpty: "#c5e0c2",
         prevBg: "#d8eed7", prevDot: "#66bb6a",
+        msgBg: "rgba(241,248,241,0.88)",
       },
     };
 
@@ -457,6 +445,7 @@
       r.setProperty('--btn-text',    t.btnText);
       r.setProperty('--timer-fill',  t.timerFill);
       r.setProperty('--timer-empty', t.timerEmpty);
+      r.setProperty('--msg-bg',      t.msgBg);
     }
 
     function go(id) {
@@ -569,23 +558,22 @@
     function tick() {
       const frac = S.total > 0 ? S.remaining / S.total : 0;
       document.documentElement.style.setProperty('--remaining', frac);
-      document.getElementById('time-display').textContent = fmt(S.remaining);
+      document.getElementById('bottom-timer').textContent = fmt(S.remaining);
     }
 
     function rotateMessage() {
       const pool = GENRES.filter(g => S.genres.has(g.id));
       const genre = pick(pool);
       const msg   = pick(genre.messages);
-      document.getElementById('main-genre').textContent  = genre.name;
-      document.getElementById('msg-genre').textContent   = genre.name;
-      document.getElementById('msg-text').innerHTML      = fmtMsg(msg);
+      document.getElementById('msg-genre').textContent = genre.name;
+      document.getElementById('msg-text').innerHTML    = fmtMsg(msg);
     }
 
     function onComplete() {
       document.documentElement.style.setProperty('--remaining', 0);
-      document.getElementById('time-display').textContent = '完了';
-      document.getElementById('msg-genre').textContent   = '';
-      document.getElementById('msg-text').innerHTML      = 'お疲れ様でした。<br>デトックス完了。';
+      document.getElementById('bottom-timer').textContent = '完了';
+      document.getElementById('msg-genre').textContent    = '';
+      document.getElementById('msg-text').innerHTML       = 'お疲れ様でした。<br>デトックス完了。';
     }
   </script>
 </body>
