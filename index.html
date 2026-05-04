@@ -240,14 +240,13 @@
       width: calc(100% - 64px);
       max-width: 320px;
       text-align: center;
-      padding: 28px 32px;
-      background: var(--msg-bg);
-      border-radius: 24px;
+      padding: 0 32px;
+      mix-blend-mode: var(--msg-blend);
     }
     #msg-genre {
       font-size: 11px;
       letter-spacing: 0.25em;
-      color: var(--sub);
+      color: var(--msg-sub);
       margin-bottom: 14px;
     }
     #msg-text {
@@ -255,6 +254,7 @@
       font-weight: 400;
       line-height: 2;
       letter-spacing: 0.06em;
+      color: var(--msg-color);
     }
 
     #bottom-timer {
@@ -334,7 +334,7 @@
         border: "#e8e8e8", btnBg: "#1a1a1a", btnText: "#ffffff",
         timerFill: "#1a1a1a", timerEmpty: "#efefef",
         prevBg: "#f5f5f5", prevDot: "#1a1a1a",
-        msgBg: "rgba(255,255,255,0.88)",
+        msgBlend: "difference", msgColor: "#ffffff", msgSub: "rgba(255,255,255,0.6)",
       },
       modern: {
         name: "モダン",
@@ -342,7 +342,7 @@
         border: "#2a2a2a", btnBg: "#c62828", btnText: "#ffffff",
         timerFill: "#c62828", timerEmpty: "#1e1e1e",
         prevBg: "#1a1a1a", prevDot: "#c62828",
-        msgBg: "rgba(13,13,13,0.88)",
+        msgBlend: "normal", msgColor: "#f0f0f0", msgSub: "#555555",
       },
       water: {
         name: "ウォーター",
@@ -350,7 +350,7 @@
         border: "#c5dff0", btnBg: "#1e88e5", btnText: "#ffffff",
         timerFill: "#1e88e5", timerEmpty: "#c5dff0",
         prevBg: "#d6edf9", prevDot: "#1e88e5",
-        msgBg: "rgba(238,246,251,0.88)",
+        msgBlend: "normal", msgColor: "#1a4a6b", msgSub: "#7aabcc",
       },
       softgreen: {
         name: "ソフトグリーン",
@@ -358,7 +358,7 @@
         border: "#c5e0c2", btnBg: "#43a047", btnText: "#ffffff",
         timerFill: "#66bb6a", timerEmpty: "#c5e0c2",
         prevBg: "#d8eed7", prevDot: "#66bb6a",
-        msgBg: "rgba(241,248,241,0.88)",
+        msgBlend: "normal", msgColor: "#2d5a27", msgSub: "#7aab76",
       },
     };
 
@@ -655,7 +655,9 @@
       r.setProperty('--btn-text',    t.btnText);
       r.setProperty('--timer-fill',  t.timerFill);
       r.setProperty('--timer-empty', t.timerEmpty);
-      r.setProperty('--msg-bg',      t.msgBg);
+      r.setProperty('--msg-blend',   t.msgBlend);
+      r.setProperty('--msg-color',   t.msgColor);
+      r.setProperty('--msg-sub',     t.msgSub);
     }
 
     function go(id) {
