@@ -247,13 +247,14 @@
       max-width: 320px;
       text-align: center;
       padding: 0 32px;
-      mix-blend-mode: var(--msg-blend);
+      background: transparent;
     }
     #msg-genre {
       font-size: 11px;
       letter-spacing: 0.25em;
       color: var(--msg-sub);
       margin-bottom: 14px;
+      mix-blend-mode: var(--msg-blend);
     }
     #msg-text {
       font-size: clamp(16px, 4.8vw, 22px);
@@ -261,6 +262,7 @@
       line-height: 2;
       letter-spacing: 0.06em;
       color: var(--msg-color);
+      mix-blend-mode: var(--msg-blend);
     }
 
     #bottom-timer {
