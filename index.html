@@ -5,23 +5,117 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>牢獄</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
     html, body {
-      width: 100%;
-      height: 100%;
+      width: 100%; height: 100%;
       background: #ffffff;
       overflow: hidden;
       -webkit-user-select: none;
       user-select: none;
+      font-family: -apple-system, "Helvetica Neue", sans-serif;
     }
 
-    #container {
+    /* ── 選択画面 ── */
+    #select-screen {
       display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 48px 32px;
+      gap: 0;
+    }
+
+    #select-screen h1 {
+      font-size: 22px;
+      font-weight: 500;
+      color: #1a1a1a;
+      letter-spacing: 0.1em;
+      margin-bottom: 8px;
+    }
+
+    #select-screen p {
+      font-size: 13px;
+      color: #aaaaaa;
+      margin-bottom: 36px;
+      letter-spacing: 0.05em;
+    }
+
+    .genre-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      width: 100%;
+      max-width: 320px;
+      margin-bottom: 40px;
+    }
+
+    .genre-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 18px;
+      border: 1.5px solid #e8e8e8;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+    }
+
+    .genre-item.selected {
+      border-color: #1a1a1a;
+      background: #f9f9f9;
+    }
+
+    .genre-item .check {
+      width: 20px; height: 20px;
+      border: 1.5px solid #cccccc;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      transition: border-color 0.15s, background 0.15s;
+    }
+
+    .genre-item.selected .check {
+      border-color: #1a1a1a;
+      background: #1a1a1a;
+    }
+
+    .genre-item.selected .check::after {
+      content: "";
+      width: 6px; height: 6px;
+      background: #fff;
+      border-radius: 50%;
+    }
+
+    .genre-label {
+      font-size: 16px;
+      color: #1a1a1a;
+      letter-spacing: 0.05em;
+    }
+
+    #start-btn {
+      width: 100%;
+      max-width: 320px;
+      padding: 16px;
+      background: #1a1a1a;
+      color: #ffffff;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      letter-spacing: 0.1em;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    #start-btn:disabled {
+      background: #cccccc;
+      cursor: default;
+    }
+
+    /* ── メイン画面 ── */
+    #main-screen {
+      display: none;
       flex-direction: column;
       align-items: center;
       justify-content: center;
@@ -29,21 +123,22 @@
       padding: 40px;
     }
 
-    #genre {
-      font-size: 13px;
-      letter-spacing: 0.2em;
+    #genre-label {
+      font-size: 12px;
+      letter-spacing: 0.25em;
       color: #cccccc;
+      margin-bottom: 28px;
       text-transform: uppercase;
-      margin-bottom: 32px;
     }
 
     #message {
-      font-size: clamp(18px, 5vw, 26px);
+      font-size: clamp(17px, 5vw, 24px);
       font-weight: 400;
       color: #1a1a1a;
       text-align: center;
-      line-height: 1.9;
-      letter-spacing: 0.05em;
+      line-height: 2;
+      letter-spacing: 0.06em;
+      white-space: pre-line;
     }
 
     #timer {
@@ -58,18 +153,28 @@
   </style>
 </head>
 <body>
-  <div id="container">
-    <div id="genre"></div>
+
+  <!-- 選択画面 -->
+  <div id="select-screen">
+    <h1>牢獄</h1>
+    <p>表示するジャンルを選んでください</p>
+    <div class="genre-list" id="genre-list"></div>
+    <button id="start-btn" disabled>開始する</button>
+  </div>
+
+  <!-- メイン画面 -->
+  <div id="main-screen">
+    <div id="genre-label"></div>
     <div id="message"></div>
   </div>
   <div id="timer"></div>
 
   <script>
-    const INTERVAL_MS = 30 * 60 * 1000;
+    const INTERVAL_MS = 5 * 60 * 1000;
 
     const genres = [
       {
-        name: "勉強",
+        id: "study", name: "勉強",
         messages: [
           "教科書を開こう。\nスマホより、未来の自分を選ぼう。",
           "今集中できれば、\n明日の自分が楽になる。",
@@ -80,7 +185,7 @@
         ]
       },
       {
-        name: "健康",
+        id: "health", name: "健康",
         messages: [
           "背筋を伸ばして、\n深く息を吸おう。",
           "目を閉じて20秒。\n目も休息が必要だ。",
@@ -91,7 +196,7 @@
         ]
       },
       {
-        name: "マインドフルネス",
+        id: "mindfulness", name: "マインドフルネス",
         messages: [
           "今、ここにある。\nそれで十分だ。",
           "呼吸だけに\n意識を向けてみよう。",
@@ -102,7 +207,7 @@
         ]
       },
       {
-        name: "自然",
+        id: "nature", name: "自然",
         messages: [
           "窓の外を眺めよう。\n空は今日も動いている。",
           "少し換気しよう。\n外の空気を感じよう。",
@@ -113,7 +218,7 @@
         ]
       },
       {
-        name: "人間関係",
+        id: "relations", name: "人間関係",
         messages: [
           "大切な人のことを\n思い浮かべよう。",
           "今日誰かに\n感謝を伝えよう。",
@@ -124,7 +229,7 @@
         ]
       },
       {
-        name: "創造",
+        id: "creative", name: "創造",
         messages: [
           "何かを書いてみよう。\n思ったことをそのまま。",
           "紙とペンを出して\n落書きしよう。",
@@ -135,7 +240,7 @@
         ]
       },
       {
-        name: "デジタルデトックス",
+        id: "detox", name: "デジタルデトックス",
         messages: [
           "スマホなしで\n何ができるか考えよう。",
           "通知は後でいい。\n今は自分の時間だ。",
@@ -147,39 +252,61 @@
       },
     ];
 
+    // ── 選択画面の構築 ──
+    const selectedIds = new Set();
+    const listEl = document.getElementById("genre-list");
+    const startBtn = document.getElementById("start-btn");
+
+    genres.forEach(g => {
+      const item = document.createElement("div");
+      item.className = "genre-item";
+      item.innerHTML = `<div class="check"></div><span class="genre-label">${g.name}</span>`;
+      item.addEventListener("click", () => {
+        if (selectedIds.has(g.id)) {
+          selectedIds.delete(g.id);
+          item.classList.remove("selected");
+        } else {
+          selectedIds.add(g.id);
+          item.classList.add("selected");
+        }
+        startBtn.disabled = selectedIds.size === 0;
+      });
+      listEl.appendChild(item);
+    });
+
+    startBtn.addEventListener("click", () => {
+      document.getElementById("select-screen").style.display = "none";
+      const mainEl = document.getElementById("main-screen");
+      mainEl.style.display = "flex";
+      update();
+    });
+
+    // ── メイン画面 ──
     function pick(arr) {
       return arr[Math.floor(Math.random() * arr.length)];
     }
 
     function update() {
-      const genre = pick(genres);
+      const pool = genres.filter(g => selectedIds.has(g.id));
+      const genre = pick(pool);
       const message = pick(genre.messages);
-
-      document.getElementById("genre").textContent = genre.name;
+      document.getElementById("genre-label").textContent = genre.name;
       document.getElementById("message").textContent = message;
-
       startCountdown();
     }
 
     function startCountdown() {
       const end = Date.now() + INTERVAL_MS;
       const timerEl = document.getElementById("timer");
-
-      clearInterval(window._countdownTimer);
-      window._countdownTimer = setInterval(() => {
-        const remaining = end - Date.now();
-        if (remaining <= 0) {
-          clearInterval(window._countdownTimer);
-          update();
-          return;
-        }
-        const m = Math.floor(remaining / 60000);
-        const s = Math.floor((remaining % 60000) / 1000);
+      clearInterval(window._timer);
+      window._timer = setInterval(() => {
+        const rem = end - Date.now();
+        if (rem <= 0) { clearInterval(window._timer); update(); return; }
+        const m = Math.floor(rem / 60000);
+        const s = Math.floor((rem % 60000) / 1000);
         timerEl.textContent = `${m}:${String(s).padStart(2, "0")}`;
       }, 1000);
     }
-
-    update();
   </script>
 </body>
 </html>
