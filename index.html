@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>牢獄</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      background: #ffffff;
+      overflow: hidden;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    #container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      padding: 40px;
+    }
+
+    #genre {
+      font-size: 13px;
+      letter-spacing: 0.2em;
+      color: #cccccc;
+      text-transform: uppercase;
+      margin-bottom: 32px;
+    }
+
+    #message {
+      font-size: clamp(18px, 5vw, 26px);
+      font-weight: 400;
+      color: #1a1a1a;
+      text-align: center;
+      line-height: 1.9;
+      letter-spacing: 0.05em;
+    }
+
+    #timer {
+      position: fixed;
+      bottom: 40px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 11px;
+      color: #e0e0e0;
+      letter-spacing: 0.1em;
+    }
+  </style>
+</head>
+<body>
+  <div id="container">
+    <div id="genre"></div>
+    <div id="message"></div>
+  </div>
+  <div id="timer"></div>
+
+  <script>
+    const INTERVAL_MS = 30 * 60 * 1000;
+
+    const genres = [
+      {
+        name: "勉強",
+        messages: [
+          "教科書を開こう。\nスマホより、未来の自分を選ぼう。",
+          "今集中できれば、\n明日の自分が楽になる。",
+          "1ページでいい。\n手を動かすことから始めよう。",
+          "理解できないことは\nメモして先に進もう。",
+          "今日の積み重ねが\n実力になる。",
+          "静かに考える時間が\n本当の学びをつくる。",
+        ]
+      },
+      {
+        name: "健康",
+        messages: [
+          "背筋を伸ばして、\n深く息を吸おう。",
+          "目を閉じて20秒。\n目も休息が必要だ。",
+          "水を一杯飲もう。\n体は正直に喜ぶ。",
+          "少し立ち上がって\nその場で体を動かそう。",
+          "肩をゆっくり回して\n力を抜こう。",
+          "よく眠れているか。\n体の声を聞こう。",
+        ]
+      },
+      {
+        name: "マインドフルネス",
+        messages: [
+          "今、ここにある。\nそれで十分だ。",
+          "呼吸だけに\n意識を向けてみよう。",
+          "焦らなくていい。\n時間はちゃんとある。",
+          "頭の中を空っぽにする時間。\n何もしなくていい。",
+          "今この瞬間を感じること。\nそれが全てだ。",
+          "静寂は\n贈り物だ。",
+        ]
+      },
+      {
+        name: "自然",
+        messages: [
+          "窓の外を眺めよう。\n空は今日も動いている。",
+          "少し換気しよう。\n外の空気を感じよう。",
+          "植物に水をあげる時間\nかもしれない。",
+          "太陽の光を浴びよう。\n体が喜ぶ。",
+          "雨の音を聞いてみよう。\n自然のリズムがある。",
+          "今日の空の色は\n何色だろう。",
+        ]
+      },
+      {
+        name: "人間関係",
+        messages: [
+          "大切な人のことを\n思い浮かべよう。",
+          "今日誰かに\n感謝を伝えよう。",
+          "画面越しじゃない\n時間をつくろう。",
+          "一人でいることも\n豊かな時間だ。",
+          "自分自身と\n向き合う時間にしよう。",
+          "誰かの声を\n直接聞きたくなったら、電話しよう。",
+        ]
+      },
+      {
+        name: "創造",
+        messages: [
+          "何かを書いてみよう。\n思ったことをそのまま。",
+          "紙とペンを出して\n落書きしよう。",
+          "頭の中のアイデアを\nどこかに記録しよう。",
+          "やってみたいことを\nリストにしよう。",
+          "何かを作る喜びを\n思い出そう。",
+          "想像することを\n楽しもう。",
+        ]
+      },
+      {
+        name: "デジタルデトックス",
+        messages: [
+          "スマホなしで\n何ができるか考えよう。",
+          "通知は後でいい。\n今は自分の時間だ。",
+          "画面のない時間が\n本当の休憩だ。",
+          "SNSは逃げない。\n自分の時間を取り戻そう。",
+          "情報から離れることも\n大切な選択だ。",
+          "今日のスマホ断ちを\n続けよう。よくやっている。",
+        ]
+      },
+    ];
+
+    function pick(arr) {
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    function update() {
+      const genre = pick(genres);
+      const message = pick(genre.messages);
+
+      document.getElementById("genre").textContent = genre.name;
+      document.getElementById("message").textContent = message;
+
+      startCountdown();
+    }
+
+    function startCountdown() {
+      const end = Date.now() + INTERVAL_MS;
+      const timerEl = document.getElementById("timer");
+
+      clearInterval(window._countdownTimer);
+      window._countdownTimer = setInterval(() => {
+        const remaining = end - Date.now();
+        if (remaining <= 0) {
+          clearInterval(window._countdownTimer);
+          update();
+          return;
+        }
+        const m = Math.floor(remaining / 60000);
+        const s = Math.floor((remaining % 60000) / 1000);
+        timerEl.textContent = `${m}:${String(s).padStart(2, "0")}`;
+      }, 1000);
+    }
+
+    update();
+  </script>
+</body>
+</html>
