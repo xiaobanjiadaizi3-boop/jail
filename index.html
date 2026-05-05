@@ -207,6 +207,128 @@
       letter-spacing: 0.04em;
     }
 
+    /* ── Guided Access animation (start screen) ── */
+    #ga-guide {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+    #ga-label {
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      color: var(--sub);
+    }
+    #ga-phone {
+      position: relative;
+      width: 72px;
+      height: 130px;
+      overflow: visible;
+    }
+    #ga-body {
+      position: absolute;
+      inset: 0;
+      border: 2px solid var(--text);
+      border-radius: 14px;
+      background: #111;
+      overflow: hidden;
+    }
+    #ga-app-view {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding-bottom: 10px;
+    }
+    #ga-sheet {
+      position: absolute;
+      left: 0; right: 0; bottom: 0;
+      background: #f2f2f7;
+      border-radius: 10px 10px 0 0;
+      padding: 8px 8px 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      transform: translateY(100%);
+    }
+    #ga-sheet-title {
+      font-size: 8px;
+      font-weight: 700;
+      color: #1c1c1e;
+      letter-spacing: 0.05em;
+    }
+    #ga-sheet-app { font-size: 7px; color: rgba(60,60,67,0.55); }
+    #ga-sheet-btn {
+      margin-top: 5px;
+      width: 100%;
+      padding: 5px 0;
+      background: #007aff;
+      color: #fff;
+      border: none;
+      border-radius: 7px;
+      font-size: 9px;
+      font-weight: 600;
+      pointer-events: none;
+      transform-origin: center;
+    }
+    #ga-homebar {
+      position: absolute;
+      bottom: 4px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 22px;
+      height: 2px;
+      background: rgba(255,255,255,0.3);
+      border-radius: 2px;
+    }
+    #ga-side {
+      position: absolute;
+      right: -3px;
+      top: 36px;
+      width: 3px;
+      height: 26px;
+      background: var(--text);
+      border-radius: 2px;
+      transform-origin: right center;
+      transition: transform 0.06s;
+    }
+    .ga-ring {
+      position: absolute;
+      right: -12px;
+      top: 40px;
+      width: 20px;
+      height: 20px;
+      border: 1.5px solid var(--text);
+      border-radius: 50%;
+      opacity: 0;
+      pointer-events: none;
+      transform-origin: center;
+    }
+    #ga-step {
+      font-size: 13px;
+      color: var(--sub);
+      letter-spacing: 0.04em;
+      min-height: 20px;
+      text-align: center;
+      transition: opacity 0.25s;
+    }
+    #ga-note {
+      font-size: 10px;
+      color: var(--sub);
+      opacity: 0.55;
+      text-align: center;
+      line-height: 1.8;
+    }
+    #ga-divider {
+      width: 32px;
+      height: 1px;
+      background: var(--border);
+      margin-bottom: 8px;
+    }
+
     /* ── main detox screen ── */
     #screen-main {
       position: fixed;
@@ -355,6 +477,37 @@
 
   <!-- 4: Start -->
   <div class="screen" id="screen-start">
+    <div id="ga-guide">
+      <div id="ga-label">アクセスガイドのやり方</div>
+      <div id="ga-phone">
+        <div id="ga-body">
+          <div id="ga-app-view">
+            <svg width="30" height="30" viewBox="0 0 100 100">
+              <rect width="100" height="100" rx="22" fill="#1a1a1a"/>
+              <rect x="14" y="16" width="72" height="9" rx="4.5" fill="#fff"/>
+              <rect x="14" y="75" width="72" height="9" rx="4.5" fill="#fff"/>
+              <rect x="18" y="16" width="9" height="68" rx="4.5" fill="#fff"/>
+              <rect x="36" y="16" width="9" height="68" rx="4.5" fill="#fff"/>
+              <rect x="55" y="16" width="9" height="68" rx="4.5" fill="#fff"/>
+              <rect x="73" y="16" width="9" height="68" rx="4.5" fill="#fff"/>
+            </svg>
+          </div>
+          <div id="ga-sheet">
+            <div id="ga-sheet-title">アクセスガイド</div>
+            <div id="ga-sheet-app">Jail</div>
+            <div id="ga-sheet-btn">開始</div>
+          </div>
+          <div id="ga-homebar"></div>
+        </div>
+        <div id="ga-side"></div>
+        <div class="ga-ring" id="ga-r1"></div>
+        <div class="ga-ring" id="ga-r2"></div>
+        <div class="ga-ring" id="ga-r3"></div>
+      </div>
+      <div id="ga-step"></div>
+      <div id="ga-note">事前に 設定 → アクセシビリティ<br>→ アクセスガイド をオン</div>
+    </div>
+    <div id="ga-divider"></div>
     <div id="start-hint">画面をどこかタッチして<br>スタート</div>
     <div id="start-meta"></div>
   </div>
@@ -790,6 +943,7 @@
       const genreNames = [...S.genres].map(id => GENRES.find(g => g.id === id).name).join('・');
       document.getElementById('start-meta').textContent = `${timeParts.join('')}  ／  ${genreNames}`;
       go('screen-start');
+      startGuideAnim();
     });
 
     // ── Screen 4: Start ──
@@ -800,6 +954,7 @@
     const MSG_MS = 5 * 60 * 1000;
 
     function startDetox() {
+      stopGuideAnim();
       S.total   = S.hours * 3600 + S.minutes * 60;
       S.endTime = Date.now() + S.total * 1000;
       go('screen-main');
@@ -848,6 +1003,75 @@
       document.querySelectorAll('.timer-el').forEach(el => el.textContent = '完了');
       document.querySelectorAll('.msg-genre-el').forEach(el => el.textContent = '');
       document.querySelectorAll('.msg-text-el').forEach(el => el.innerHTML = 'お疲れ様でした。<br>デトックス完了。');
+    }
+
+    // ── Guided Access animation ──
+    let _gaT = null;
+
+    function startGuideAnim() {
+      stopGuideAnim();
+      const step  = document.getElementById('ga-step');
+      const sheet = document.getElementById('ga-sheet');
+      const side  = document.getElementById('ga-side');
+      const btn   = document.getElementById('ga-sheet-btn');
+      const rings = ['ga-r1','ga-r2','ga-r3'].map(id => document.getElementById(id));
+
+      function fireRing(el, delay) {
+        setTimeout(() => {
+          el.style.cssText = 'opacity:0.85; transform:scale(0.25); transition:none';
+          requestAnimationFrame(() => requestAnimationFrame(() => {
+            el.style.cssText = 'opacity:0; transform:scale(2.2); transition:opacity 0.55s ease-out, transform 0.55s ease-out';
+          }));
+        }, delay);
+      }
+
+      function pressBtn(delay) {
+        setTimeout(() => {
+          side.style.transform = 'scaleX(1.8)';
+          setTimeout(() => { side.style.transform = ''; }, 70);
+        }, delay);
+      }
+
+      function loop() {
+        // Reset
+        sheet.style.cssText    = 'transform:translateY(100%); transition:none';
+        btn.style.cssText      = '';
+        rings.forEach(r => { r.style.opacity = '0'; });
+        step.style.opacity     = '0';
+
+        // Step 1: triple-click
+        setTimeout(() => {
+          step.textContent   = '① サイドボタンを3回素早く押す';
+          step.style.opacity = '1';
+        }, 300);
+        [800, 1150, 1500].forEach((t, i) => { pressBtn(t); fireRing(rings[i], t); });
+
+        // Fade step label, show sheet
+        setTimeout(() => { step.style.opacity = '0'; }, 2150);
+        setTimeout(() => {
+          sheet.style.cssText = 'transition:transform 0.45s cubic-bezier(0.25,1,0.5,1)';
+          sheet.style.transform = 'translateY(0)';
+          step.textContent   = '② 「開始」をタップ';
+          step.style.opacity = '1';
+        }, 2450);
+
+        // Tap 開始
+        setTimeout(() => {
+          btn.style.cssText = 'transform:scale(0.88); opacity:0.5; transition:transform 0.07s, opacity 0.07s';
+        }, 3800);
+        setTimeout(() => {
+          btn.style.cssText = 'transition:transform 0.2s, opacity 0.2s';
+        }, 3950);
+
+        _gaT = setTimeout(loop, 5600);
+      }
+
+      loop();
+    }
+
+    function stopGuideAnim() {
+      clearTimeout(_gaT);
+      _gaT = null;
     }
   </script>
 </body>
